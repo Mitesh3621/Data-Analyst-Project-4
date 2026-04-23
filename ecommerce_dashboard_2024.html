@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>E-Commerce Executive Dashboard — FY 2024</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* === RESET & BASE === */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#181210;
+  --surface:#211a16;
+  --card:#2b2219;
+  --card-hover:#332920;
+  --border:rgba(255,230,210,0.07);
+  --border-subtle:rgba(255,230,210,0.04);
+  --rose:#F2607A;
+  --rose-dim:rgba(242,96,122,0.13);
+  --violet:#A855F7;
+  --violet-dim:rgba(168,85,247,0.13);
+  --mauve:#C084FC;
+  --mauve-dim:rgba(192,132,252,0.12);
+  --blush:#FB7FA8;
+  --blush-dim:rgba(251,127,168,0.12);
+  --lavender:#818CF8;
+  --lavender-dim:rgba(129,140,248,0.12);
+  --ok:#6ECC8A;
+  --ok-dim:rgba(110,204,138,0.12);
+  --warn:#F0A04B;
+  --warn-dim:rgba(240,160,75,0.12);
+  --crit:#F2607A;
+  --crit-dim:rgba(242,96,122,0.13);
+  --text-primary:#F5EDE6;
+  --text-secondary:#9D8A7C;
+  --text-muted:#5C4F47;
+  --radius:12px;
+  --radius-sm:8px;
+  font-size:14px;
+}
+html,body{height:100%;width:100%;background:var(--bg);color:var(--text-primary);font-family:'DM Sans',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;height:100vh;min-width:1280px;}
+
+/* === HEADER === */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 24px;background:var(--surface);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;position:relative;z-index:10;
+}
+.header::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(168,85,247,0.55),rgba(242,96,122,0.45),rgba(192,132,252,0.3),transparent);
+}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header-logo{
+  width:32px;height:32px;
+  background:linear-gradient(135deg,#A855F7,#F2607A);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;letter-spacing:-0.5px;flex-shrink:0;
+}
+.header-title{font-size:15px;font-weight:600;color:var(--text-primary);letter-spacing:-0.2px;}
+.header-subtitle{font-size:11px;color:var(--text-secondary);margin-top:1px;}
+.header-tag{
+  background:rgba(168,85,247,0.14);border:1px solid rgba(168,85,247,0.3);
+  color:#C084FC;font-size:10px;font-weight:600;
+  padding:3px 10px;border-radius:20px;letter-spacing:0.5px;
+  font-family:'JetBrains Mono',monospace;
+}
+.header-right{display:flex;align-items:center;gap:12px;}
+.last-updated{font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+.last-updated span{color:var(--text-secondary);}
+.btn-export{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;background:var(--card);border:1px solid var(--border);
+  color:var(--text-secondary);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;border-radius:var(--radius-sm);
+  cursor:pointer;transition:all 0.2s;
+}
+.btn-export:hover{background:var(--card-hover);border-color:rgba(168,85,247,0.4);color:#C084FC;}
+.btn-export svg{width:13px;height:13px;}
+
+/* === LAYOUT === */
+.main{flex:1;display:flex;flex-direction:column;gap:10px;padding:12px 20px 10px;overflow:hidden;min-height:0;}
+
+/* === KPI ROW === */
+.kpi-row{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;flex-shrink:0;}
+.kpi-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:11px 14px 10px;position:relative;cursor:pointer;overflow:hidden;
+  transition:transform 0.2s ease,box-shadow 0.2s ease,border-color 0.2s ease;
+}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  border-radius:var(--radius) var(--radius) 0 0;opacity:0.9;
+}
+.kpi-card.rose::before    {background:linear-gradient(90deg,#F2607A,rgba(242,96,122,0.15));}
+.kpi-card.violet::before  {background:linear-gradient(90deg,#A855F7,rgba(168,85,247,0.15));}
+.kpi-card.mauve::before   {background:linear-gradient(90deg,#C084FC,rgba(192,132,252,0.15));}
+.kpi-card.blush::before   {background:linear-gradient(90deg,#FB7FA8,rgba(251,127,168,0.15));}
+.kpi-card.lavender::before{background:linear-gradient(90deg,#818CF8,rgba(129,140,248,0.15));}
+.kpi-card::after{content:'';position:absolute;inset:0;border-radius:var(--radius);opacity:0;transition:opacity 0.2s;}
+.kpi-card.rose::after    {box-shadow:inset 0 0 40px rgba(242,96,122,0.07);}
+.kpi-card.violet::after  {box-shadow:inset 0 0 40px rgba(168,85,247,0.07);}
+.kpi-card.mauve::after   {box-shadow:inset 0 0 40px rgba(192,132,252,0.07);}
+.kpi-card.blush::after   {box-shadow:inset 0 0 40px rgba(251,127,168,0.07);}
+.kpi-card.lavender::after{box-shadow:inset 0 0 40px rgba(129,140,248,0.07);}
+.kpi-card:hover{transform:translateY(-2px);border-color:rgba(255,230,210,0.13);}
+.kpi-card.rose:hover    {box-shadow:0 8px 28px rgba(242,96,122,0.22);}
+.kpi-card.violet:hover  {box-shadow:0 8px 28px rgba(168,85,247,0.22);}
+.kpi-card.mauve:hover   {box-shadow:0 8px 28px rgba(192,132,252,0.2);}
+.kpi-card.blush:hover   {box-shadow:0 8px 28px rgba(251,127,168,0.2);}
+.kpi-card.lavender:hover{box-shadow:0 8px 28px rgba(129,140,248,0.2);}
+.kpi-card:hover::after{opacity:1;}
+.kpi-label{font-size:9.5px;font-weight:500;color:var(--text-muted);letter-spacing:0.8px;text-transform:uppercase;margin-bottom:5px;}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;line-height:1;margin-bottom:6px;letter-spacing:-0.5px;}
+.kpi-card.rose     .kpi-value{color:#F2607A;}
+.kpi-card.violet   .kpi-value{color:#A855F7;}
+.kpi-card.mauve    .kpi-value{color:#C084FC;}
+.kpi-card.blush    .kpi-value{color:#FB7FA8;}
+.kpi-card.lavender .kpi-value{color:#818CF8;}
+.kpi-footer{display:flex;align-items:center;justify-content:space-between;}
+.kpi-sub{font-size:9px;color:var(--text-muted);}
+.badge{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;letter-spacing:0.3px;}
+.badge.ok      {background:rgba(110,204,138,0.12);color:#6ECC8A;border:1px solid rgba(110,204,138,0.22);}
+.badge.watch   {background:rgba(240,160,75,0.12);color:#F0A04B;border:1px solid rgba(240,160,75,0.22);}
+.badge.critical{background:rgba(242,96,122,0.13);color:#F2607A;border:1px solid rgba(242,96,122,0.25);}
+.badge.neutral {background:rgba(255,230,210,0.05);color:var(--text-secondary);border:1px solid var(--border);}
+
+/* === PANELS === */
+.charts-row{display:grid;grid-template-columns:60fr 40fr;gap:10px;min-height:0;flex:1;}
+.bottom-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;min-height:0;flex:1;}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;flex-direction:column;overflow:hidden;}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-shrink:0;}
+.panel-title{font-size:11px;font-weight:600;color:var(--text-primary);letter-spacing:0.1px;}
+.panel-subtitle{font-size:9.5px;color:var(--text-muted);margin-top:1px;}
+.panel-meta{display:flex;align-items:center;gap:6px;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--text-muted);}
+.chart-wrap{flex:1;position:relative;min-height:0;}
+.filter-active{
+  display:flex;align-items:center;gap:4px;font-size:9px;color:#C084FC;
+  padding:2px 8px;background:rgba(192,132,252,0.1);
+  border:1px solid rgba(192,132,252,0.25);border-radius:20px;cursor:pointer;
+}
+.filter-active:hover{background:rgba(192,132,252,0.18);}
+
+/* === CAMPAIGN TABLE === */
+.camp-table{width:100%;border-collapse:collapse;font-size:11px;}
+.camp-table th{text-align:left;font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:0.7px;text-transform:uppercase;padding:0 8px 8px 0;border-bottom:1px solid var(--border);}
+.camp-table th:last-child,.camp-table td:last-child{text-align:right;padding-right:0;}
+.camp-table td{padding:7px 8px 7px 0;border-bottom:1px solid var(--border-subtle);vertical-align:middle;}
+.camp-table tr:last-child td{border-bottom:none;}
+.camp-name{display:flex;align-items:center;gap:6px;font-weight:500;color:var(--text-primary);}
+.camp-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.camp-rev{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--text-primary);}
+.camp-num{font-family:'JetBrains Mono',monospace;font-size:10px;}
+.camp-bar-wrap{width:70px;height:4px;background:rgba(255,230,210,0.06);border-radius:2px;overflow:hidden;}
+.camp-bar{height:100%;border-radius:2px;transition:width 0.6s ease;}
+.camp-orders{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-secondary);}
+
+/* === RISK TABLE === */
+.risk-table{width:100%;border-collapse:collapse;}
+.risk-table th{font-size:9px;font-weight:600;color:var(--text-muted);letter-spacing:0.7px;text-transform:uppercase;padding:0 0 8px;border-bottom:1px solid var(--border);text-align:left;}
+.risk-table th:last-child,.risk-table td:last-child{text-align:right;}
+.risk-row td{padding:7px 0;border-bottom:1px solid var(--border-subtle);font-size:11px;vertical-align:middle;}
+.risk-row:last-child td{border-bottom:none;}
+.risk-row.critical-row{animation:pulseBg 2.2s ease-in-out infinite;}
+@keyframes pulseBg{0%,100%{background:transparent;}50%{background:rgba(242,96,122,0.06);}}
+.risk-cat{font-weight:500;color:var(--text-primary);font-size:11px;}
+.risk-rate{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;}
+.risk-bar-wrap{width:80px;height:5px;background:rgba(255,230,210,0.06);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;}
+.risk-bar{height:100%;border-radius:3px;transition:width 0.7s ease;}
+.risk-badge{font-size:8.5px;font-weight:600;padding:2px 6px;border-radius:10px;display:inline-flex;align-items:center;gap:2px;}
+.risk-badge.crit{background:rgba(242,96,122,0.13);color:#F2607A;border:1px solid rgba(242,96,122,0.25);}
+.risk-badge.warn{background:rgba(240,160,75,0.12);color:#F0A04B;border:1px solid rgba(240,160,75,0.22);}
+.risk-badge.ok  {background:rgba(110,204,138,0.12);color:#6ECC8A;border:1px solid rgba(110,204,138,0.22);}
+.risk-orders{font-size:9.5px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;}
+
+/* === DONUT CENTER === */
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;}
+.donut-center-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--text-primary);line-height:1;}
+.donut-center-label{font-size:9px;color:var(--text-muted);margin-top:2px;letter-spacing:0.5px;}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(255,230,210,0.1);border-radius:2px;}
+
+/* === KPI TOOLTIP === */
+.kpi-tooltip{
+  position:fixed;background:rgba(24,18,16,0.97);
+  border:1px solid rgba(255,230,210,0.1);border-radius:var(--radius-sm);
+  padding:10px 14px;font-size:11px;color:var(--text-primary);
+  z-index:1000;pointer-events:none;opacity:0;transition:opacity 0.15s;
+  min-width:140px;box-shadow:0 8px 32px rgba(0,0,0,0.6);
+}
+.kpi-tooltip.visible{opacity:1;}
+.kpi-tooltip canvas{display:block;margin-top:6px;}
+</style>
+</head>
+<body>
+
+<!-- === HEADER === -->
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">EC</div>
+    <div>
+      <div class="header-title">E-Commerce Executive Dashboard</div>
+      <div class="header-subtitle">Profit, Customer Behavior &amp; Operations Intelligence</div>
+    </div>
+    <div class="header-tag">FY 2024</div>
+  </div>
+  <div class="header-right">
+    <div class="last-updated">Last updated: <span id="lastUpdated"></span></div>
+    <button class="btn-export" onclick="exportPNG()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 10v3h10v-3M8 2v7M5 6l3 3 3-3"/>
+      </svg>
+      Export PNG
+    </button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- === ROW 1: KPI CARDS === -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- === ROW 2: TREND + DOUGHNUT === -->
+  <div class="charts-row" style="flex:1.15;min-height:0;">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Monthly Revenue &amp; Profit Trend — 2024</div>
+          <div class="panel-subtitle">Revenue · Profit bars · Margin % line</div>
+        </div>
+        <div class="panel-meta">
+          <div class="legend-item"><div class="dot" style="background:#A855F7;"></div>Revenue</div>
+          <div class="legend-item"><div class="dot" style="background:#F2607A;"></div>Profit</div>
+          <div class="legend-item"><div class="dot" style="background:#F0A04B;border-radius:2px;width:10px;height:3px;"></div>Margin%</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="trendChart" role="img" aria-label="Monthly revenue and profit trend 2024"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Revenue by Sales Channel</div>
+          <div class="panel-subtitle">Click segment to filter categories</div>
+        </div>
+        <div id="channelFilterLabel"></div>
+      </div>
+      <div class="chart-wrap" style="position:relative;">
+        <canvas id="channelChart" role="img" aria-label="Revenue by sales channel doughnut chart"></canvas>
+        <div class="donut-center">
+          <div class="donut-center-val">₹46.6L</div>
+          <div class="donut-center-label">TOTAL</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- === ROW 3: BOTTOM PANELS === -->
+  <div class="bottom-row" style="flex:1;min-height:0;">
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Revenue by Category</div>
+          <div class="panel-subtitle" id="catSubtitle">All channels · ₹46.6L total</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="categoryChart" role="img" aria-label="Revenue by category horizontal bars"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Campaign Performance</div>
+          <div class="panel-subtitle">Revenue · Share · Margin</div>
+        </div>
+      </div>
+      <div style="flex:1;overflow:auto;"><table class="camp-table" id="campTable"></table></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Refund Risk Monitor</div>
+          <div class="panel-subtitle">By category · Target &lt;5%</div>
+        </div>
+        <div class="badge critical">⚠ 8.58% overall</div>
+      </div>
+      <div style="flex:1;overflow:auto;"><table class="risk-table" id="riskTable"></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- KPI Sparkline Tooltip -->
+<div class="kpi-tooltip" id="kpiTooltip">
+  <div id="tooltipTitle" style="font-size:10px;color:var(--text-muted);margin-bottom:4px;"></div>
+  <div id="tooltipValue" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;"></div>
+  <canvas id="sparkCanvas" width="110" height="36"></canvas>
+</div>
+
+<script>
+// === DATA CONSTANTS ===
+const DATA = {
+  kpis:[
+    {label:"Total Revenue",   value:"₹46.6L", sub:"Gross before refunds",  color:"violet",   status:"neutral", statusTxt:"Reported",   spark:[41,38,52,35,38,48,54,51,40,43,42,46]},
+    {label:"Net Revenue",     value:"₹43.9L", sub:"After ₹2.79L refunds",  color:"violet",   status:"ok",      statusTxt:"On Track",   spark:[38,35,49,33,36,45,50,47,38,40,39,43]},
+    {label:"Total Profit",    value:"₹10.9L", sub:"23.32% margin",          color:"mauve",    status:"ok",      statusTxt:"On Track",   spark:[10,9,12,8,9,11,13,12,10,10,10,11]},
+    {label:"Profit Margin",   value:"23.32%", sub:"Target >20%",            color:"mauve",    status:"ok",      statusTxt:"✓ On Track", spark:[25,24,22,23,23,24,22,24,23,24,22,25]},
+    {label:"Total Orders",    value:"793",    sub:"196 distinct customers", color:"lavender", status:"neutral", statusTxt:"Reported",   spark:[67,55,73,58,66,69,74,84,59,68,60,60]},
+    {label:"Avg Order Value", value:"₹5,882", sub:"Per order average",      color:"lavender", status:"neutral", statusTxt:"Reported",   spark:[53,60,72,55,49,59,60,60,58,55,60,63]},
+    {label:"Refund Rate",     value:"8.58%",  sub:"68 of 793 orders",       color:"blush",    status:"watch",   statusTxt:"⚠ Watch",    spark:[7,9,8,10,9,8,9,10,7,8,9,10]},
+    {label:"Avg CSAT",        value:"2.87/5", sub:"Target >3.0",            color:"rose",     status:"critical",statusTxt:"✗ Critical", spark:[3,3,2,3,3,3,2,3,3,2,3,3]},
+  ],
+  monthly:{
+    labels:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    revenue:[357,328,523,320,407,350,577,488,413,455,476,570],
+    profit: [89,  77, 115,  74,  74,  97,  98, 122,  78,  88,  79,  95],
+    margin: [25.1,23.6,21.9,23.0,18.2,24.1,22.1,24.0,22.7,23.7,21.9,25.2],
+  },
+  channels:{
+    all:{
+      labels:["Mobile App","Website","Social Media"],
+      revenue:[2104940,2059166,500491],
+      colors:["#A855F7","#F2607A","#C084FC"],
+    },
+    categoryByChannel:{
+      all:           {Electronics:1132241,Fashion:1057750,"Home & Kitchen":917478,Grocery:840387,Beauty:716741},
+      "Mobile App":  {Electronics:510000, Fashion:480000, "Home & Kitchen":410000,Grocery:380000,Beauty:325000},
+      Website:       {Electronics:490000, Fashion:440000, "Home & Kitchen":372000,Grocery:325000,Beauty:432000},
+      "Social Media":{Electronics:132000, Fashion:137750, "Home & Kitchen":135000,Grocery:135387,Beauty:0},
+    },
+  },
+  campaigns:[
+    {name:"Organic",        rev:1379997,orders:229,margin:23.4,color:"#A855F7"},
+    {name:"Summer Sale",    rev:1215585,orders:218,margin:22.8,color:"#F2607A"},
+    {name:"New Year Blast", rev: 847120,orders:146,margin:23.9,color:"#C084FC"},
+    {name:"Clearance",      rev: 686613,orders:121,margin:22.1,color:"#FB7FA8"},
+    {name:"Flash Deal",     rev: 535281,orders: 79,margin:24.1,color:"#818CF8"},
+  ],
+  refundRisk:[
+    {cat:"Home & Kitchen",rate:14.65,orders:157,refunded:23,level:"critical"},
+    {cat:"Beauty",        rate: 8.66,orders:127,refunded:11,level:"watch"},
+    {cat:"Fashion",       rate: 8.15,orders:184,refunded:15,level:"watch"},
+    {cat:"Electronics",   rate: 7.25,orders:193,refunded:14,level:"watch"},
+    {cat:"Grocery",       rate: 3.79,orders:132,refunded: 5,level:"ok"},
+  ],
+};
+
+// === UTILITIES ===
+function fmtINR(v){
+  if(v>=10000000) return "₹"+(v/10000000).toFixed(1)+"Cr";
+  if(v>=100000)   return "₹"+(v/100000).toFixed(1)+"L";
+  if(v>=1000)     return "₹"+(v/1000).toFixed(1)+"K";
+  return "₹"+v.toLocaleString("en-IN");
+}
+function ha(hex,a){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// === CHART.JS GLOBALS ===
+Chart.defaults.color="#5C4F47";
+Chart.defaults.borderColor="rgba(255,230,210,0.04)";
+Chart.defaults.font.family="'DM Sans',sans-serif";
+
+const TT={
+  backgroundColor:"rgba(24,18,16,0.97)",
+  borderColor:"rgba(255,230,210,0.1)",
+  borderWidth:1,titleColor:"#9D8A7C",bodyColor:"#F5EDE6",
+  padding:10,cornerRadius:8,
+  titleFont:{family:"'DM Sans',sans-serif",size:10,weight:"600"},
+  bodyFont:{family:"'JetBrains Mono',monospace",size:11},
+  displayColors:false,
+};
+
+// === TIMESTAMP ===
+document.getElementById("lastUpdated").textContent=
+  new Date().toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+
+// === KPI CARDS ===
+(function(){
+  const row=document.getElementById("kpiRow");
+  const tip=document.getElementById("kpiTooltip");
+  const ttT=document.getElementById("tooltipTitle");
+  const ttV=document.getElementById("tooltipValue");
+  const sc =document.getElementById("sparkCanvas");
+  const sx =sc.getContext("2d");
+  const CMAP={violet:"#A855F7",mauve:"#C084FC",rose:"#F2607A",blush:"#FB7FA8",lavender:"#818CF8"};
+
+  DATA.kpis.forEach(k=>{
+    const card=document.createElement("div");
+    card.className=`kpi-card ${k.color}`;
+    card.innerHTML=`
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-footer">
+        <div class="kpi-sub">${k.sub}</div>
+        <div class="badge ${k.status}">${k.statusTxt}</div>
+      </div>`;
+
+    card.addEventListener("mouseenter",()=>{
+      const rect=card.getBoundingClientRect();
+      const c=CMAP[k.color];
+      ttT.textContent=k.label+" — Monthly Trend";
+      ttV.textContent=k.value;ttV.style.color=c;
+      sx.clearRect(0,0,110,36);
+      const mn=Math.min(...k.spark),mx=Math.max(...k.spark),rng=mx-mn||1;
+      const pts=k.spark.map((v,i)=>({x:i*(110/11),y:36-((v-mn)/rng)*28-4}));
+      sx.beginPath();sx.moveTo(pts[0].x,pts[0].y);
+      pts.forEach(p=>sx.lineTo(p.x,p.y));
+      sx.strokeStyle=c;sx.lineWidth=1.5;sx.stroke();
+      sx.lineTo(pts[pts.length-1].x,36);sx.lineTo(0,36);sx.closePath();
+      const g=sx.createLinearGradient(0,0,0,36);
+      g.addColorStop(0,ha(c,0.35));g.addColorStop(1,ha(c,0));
+      sx.fillStyle=g;sx.fill();
+      const lp=pts[pts.length-1];
+      sx.beginPath();sx.arc(lp.x,lp.y,2.5,0,Math.PI*2);sx.fillStyle=c;sx.fill();
+      tip.style.left=Math.min(rect.left,window.innerWidth-180)+"px";
+      tip.style.top=(rect.bottom+8)+"px";
+      tip.classList.add("visible");
+    });
+    card.addEventListener("mouseleave",()=>tip.classList.remove("visible"));
+    row.appendChild(card);
+  });
+})();
+
+// === MONTHLY TREND CHART ===
+(function(){
+  const ctx=document.getElementById("trendChart").getContext("2d");
+  const {labels,revenue,profit,margin}=DATA.monthly;
+  new Chart(ctx,{
+    data:{labels,datasets:[
+      {type:"bar",label:"Revenue (₹K)",data:revenue,
+       backgroundColor:revenue.map(()=>ha("#A855F7",0.55)),
+       hoverBackgroundColor:revenue.map(()=>ha("#A855F7",0.88)),
+       borderWidth:0,borderRadius:5,borderSkipped:false,yAxisID:"y",order:2},
+      {type:"bar",label:"Profit (₹K)",data:profit,
+       backgroundColor:profit.map(()=>ha("#F2607A",0.45)),
+       hoverBackgroundColor:profit.map(()=>ha("#F2607A",0.82)),
+       borderWidth:0,borderRadius:5,borderSkipped:false,yAxisID:"y",order:3},
+      {type:"line",label:"Margin %",data:margin,
+       borderColor:"#F0A04B",backgroundColor:"transparent",
+       borderWidth:2,pointRadius:3,
+       pointBackgroundColor:"#F0A04B",pointBorderColor:"#181210",pointBorderWidth:1.5,
+       tension:0.4,yAxisID:"y2",order:1},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:"index",intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{...TT,callbacks:{
+          title:c=>c[0].label+" 2024",
+          label:c=>{
+            if(c.dataset.label==="Revenue (₹K)") return " Revenue: ₹"+c.raw+"K";
+            if(c.dataset.label==="Profit (₹K)")  return " Profit:  ₹"+c.raw+"K";
+            return " Margin:  "+c.raw+"%";
+          }
+        }}
+      },
+      scales:{
+        x:{grid:{color:"rgba(255,230,210,0.04)"},ticks:{font:{size:10},color:"#5C4F47"},border:{color:"transparent"}},
+        y:{position:"left",grid:{color:"rgba(255,230,210,0.04)"},
+           ticks:{font:{family:"'JetBrains Mono',monospace",size:9},color:"#5C4F47",callback:v=>v+"K"},
+           border:{color:"transparent"}},
+        y2:{position:"right",grid:{display:false},
+            ticks:{font:{family:"'JetBrains Mono',monospace",size:9},color:"#F0A04B",callback:v=>v+"%"},
+            border:{color:"transparent"},min:15,max:30},
+      }
+    }
+  });
+})();
+
+// === CHANNEL DOUGHNUT ===
+let channelChart,activeChannel="all";
+(function(){
+  const ctx=document.getElementById("channelChart").getContext("2d");
+  const d=DATA.channels.all;
+  channelChart=new Chart(ctx,{
+    type:"doughnut",
+    data:{labels:d.labels,datasets:[{
+      data:d.revenue,
+      backgroundColor:d.colors.map(c=>ha(c,0.8)),
+      hoverBackgroundColor:d.colors,
+      borderColor:"#2b2219",borderWidth:2,hoverOffset:8,
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:"68%",
+      plugins:{
+        legend:{position:"bottom",labels:{
+          color:"#9D8A7C",font:{size:10},padding:14,
+          boxWidth:8,boxHeight:8,usePointStyle:true,pointStyleWidth:8,
+        }},
+        tooltip:{...TT,callbacks:{
+          label:c=>{
+            const tot=c.dataset.data.reduce((a,b)=>a+b,0);
+            return ` ${fmtINR(c.raw)}  (${((c.raw/tot)*100).toFixed(1)}%)`;
+          }
+        }}
+      },
+      onClick:(_,els)=>{
+        if(!els.length){resetFilter();return;}
+        const ch=d.labels[els[0].index];
+        activeChannel===ch?resetFilter():applyFilter(ch);
+      }
+    }
+  });
+})();
+
+function applyFilter(ch){
+  activeChannel=ch;
+  updateCatChart(DATA.channels.categoryByChannel[ch]);
+  document.getElementById("catSubtitle").textContent=ch+" channel · filtered";
+  document.getElementById("channelFilterLabel").innerHTML=
+    `<div class="filter-active" onclick="resetFilter()">✕ ${ch}</div>`;
+  const cols=DATA.channels.all.colors;
+  channelChart.data.datasets[0].backgroundColor=
+    DATA.channels.all.labels.map((l,i)=>ha(cols[i],l===ch?1:0.22));
+  channelChart.update();
+}
+function resetFilter(){
+  activeChannel="all";
+  updateCatChart(DATA.channels.categoryByChannel.all);
+  document.getElementById("catSubtitle").textContent="All channels · ₹46.6L total";
+  document.getElementById("channelFilterLabel").innerHTML="";
+  channelChart.data.datasets[0].backgroundColor=DATA.channels.all.colors.map(c=>ha(c,0.8));
+  channelChart.update();
+}
+
+// === CATEGORY BAR CHART ===
+let catChart;
+(function(){
+  const ctx=document.getElementById("categoryChart").getContext("2d");
+  const cat=DATA.channels.categoryByChannel.all;
+  const COLS=["#A855F7","#F2607A","#C084FC","#FB7FA8","#818CF8"];
+  catChart=new Chart(ctx,{
+    type:"bar",
+    data:{labels:Object.keys(cat),datasets:[{
+      label:"Revenue",data:Object.values(cat),
+      backgroundColor:COLS.map(c=>ha(c,0.65)),
+      hoverBackgroundColor:COLS,
+      borderWidth:0,borderRadius:5,borderSkipped:false,
+    }]},
+    options:{
+      indexAxis:"y",responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...TT,callbacks:{
+        label:c=>` ${fmtINR(c.raw)}  (${((c.raw/4664597)*100).toFixed(1)}%)`
+      }}},
+      scales:{
+        x:{grid:{color:"rgba(255,230,210,0.04)"},
+           ticks:{font:{family:"'JetBrains Mono',monospace",size:9},color:"#5C4F47",callback:v=>fmtINR(v)},
+           border:{color:"transparent"}},
+        y:{grid:{display:false},ticks:{font:{size:10},color:"#9D8A7C"},border:{color:"transparent"}},
+      }
+    }
+  });
+})();
+
+function updateCatChart(catData){
+  const vals=Object.values(catData);
+  const tot=vals.reduce((a,b)=>a+b,0);
+  catChart.data.datasets[0].data=vals;
+  catChart.options.plugins.tooltip.callbacks.label=
+    c=>` ${fmtINR(c.raw)}  (${((c.raw/tot)*100).toFixed(1)}%)`;
+  catChart.update("active");
+}
+
+// === CAMPAIGN TABLE ===
+(function(){
+  const tbl=document.getElementById("campTable");
+  const maxR=Math.max(...DATA.campaigns.map(c=>c.rev));
+  tbl.innerHTML=`<thead><tr>
+    <th>Campaign</th><th>Revenue</th>
+    <th style="text-align:center">Share</th>
+    <th>Margin</th>
+    <th style="text-align:right">Orders</th>
+  </tr></thead>`;
+  const tb=document.createElement("tbody");
+  DATA.campaigns.forEach(c=>{
+    const share=((c.rev/4664597)*100).toFixed(1);
+    const bw=Math.round((c.rev/maxR)*100);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td><div class="camp-name"><div class="camp-dot" style="background:${c.color}"></div>${c.name}</div></td>
+      <td>
+        <div class="camp-rev">${fmtINR(c.rev)}</div>
+        <div class="camp-bar-wrap" style="margin-top:3px">
+          <div class="camp-bar" style="width:${bw}%;background:${c.color}"></div>
+        </div>
+      </td>
+      <td style="text-align:center"><span class="camp-num" style="color:${c.color}">${share}%</span></td>
+      <td><span class="camp-num" style="color:#6ECC8A">${c.margin}%</span></td>
+      <td style="text-align:right"><span class="camp-orders">${c.orders}</span></td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+})();
+
+// === REFUND RISK TABLE ===
+(function(){
+  const tbl=document.getElementById("riskTable");
+  tbl.innerHTML=`<thead><tr>
+    <th>Category</th><th>Rate</th><th>Risk</th>
+    <th style="text-align:right">Refunded</th>
+  </tr></thead>`;
+  const tb=document.createElement("tbody");
+  DATA.refundRisk.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.className="risk-row"+(r.level==="critical"?" critical-row":"");
+    const bc=r.level==="critical"?"#F2607A":r.level==="watch"?"#F0A04B":"#6ECC8A";
+    const bw=Math.min(Math.round((r.rate/15)*100),100);
+    const bc2=r.level==="critical"?"crit":r.level==="watch"?"warn":"ok";
+    const bi=r.level==="critical"?"✗":r.level==="watch"?"⚠":"✓";
+    tr.innerHTML=`
+      <td>
+        <span class="risk-cat">${r.cat}</span>
+        <div class="risk-bar-wrap" style="margin-top:3px">
+          <div class="risk-bar" style="width:${bw}%;background:${bc}"></div>
+        </div>
+      </td>
+      <td><span class="risk-rate" style="color:${bc}">${r.rate.toFixed(2)}%</span></td>
+      <td><span class="risk-badge ${bc2}">${bi} ${r.level}</span></td>
+      <td style="text-align:right"><span class="risk-orders">${r.refunded}/${r.orders}</span></td>`;
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+})();
+
+// === EXPORT PNG ===
+function exportPNG(){
+  const btn=document.querySelector(".btn-export");
+  btn.textContent="Exporting…";btn.disabled=true;
+  html2canvas(document.body,{backgroundColor:"#181210",scale:2,useCORS:true,logging:false})
+    .then(cv=>{
+      const a=document.createElement("a");
+      a.download="ecommerce-dashboard-fy2024.png";
+      a.href=cv.toDataURL("image/png");a.click();
+      btn.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M3 10v3h10v-3M8 2v7M5 6l3 3 3-3"/></svg> Export PNG`;
+      btn.disabled=false;
+    }).catch(()=>{btn.innerHTML="Export PNG";btn.disabled=false;});
+}
+</script>
+</body>
+</html>
