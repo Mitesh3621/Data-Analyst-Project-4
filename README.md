@@ -58,7 +58,7 @@ If refund rates are high in specific categories or CSAT scores fall below target
 
 ## Dashboard Snapshot
 
-> *<img width="3072" height="1390" alt="Image" src="https://github.com/user-attachments/assets/ebf631f7-7000-4a4e-ae3f-cbe4692572c9" />*
+> *<img width="3072" height="1390" alt="Image" src="https://github.com/user-attachments/assets/5ab61769-dab1-4f92-80f0-e430f3caae95" />*
 
 ---
 
